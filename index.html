@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="referrer" content="no-referrer" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta name="theme-color" content="#05080f" />
+<title>Atlas — Карты</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8z' fill='%234f8aff'/><circle cx='12' cy='10' r='3' fill='white'/></svg>" />
+<link rel="stylesheet" href="styles.css?v=23" />
+<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&apikey=7b9a02e6-6c9a-48fe-8659-226050defb05" type="text/javascript"></script>
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C7.58 2 4 5.58 4 10c0 6 8 12 8 12s8-6 8-12c0-4.42-3.58-8-8-8z" stroke="currentColor" stroke-width="1.6"/>
+          <circle cx="12" cy="10" r="3" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">Atlas</span>
+        <span class="brand-sub">Яндекс.Карты</span>
+      </div>
+    </div>
+
+    <div class="search-wrap">
+      <div class="search-box" id="searchBox">
+        <input id="searchInput" type="text" placeholder="Поиск…" autocomplete="off" />
+        <button class="search-clear" id="searchClear" aria-label="Очистить">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="icon-btn" id="locateBtn" title="Моё местоположение">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <button class="icon-btn" id="themeBtn" title="Сменить тему">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="tool-sep"></div>
+      <button class="icon-btn" id="layersBtn" title="Стили карты">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l9 5-9 5-9-5 9-5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M3 13l9 5 9-5M3 18l9 5 9-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" opacity=".5"/></svg>
+      </button>
+      <button class="icon-btn" id="bmBtn" title="Закладки">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z" stroke="currentColor" stroke-width="1.8"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile panel overlay -->
+  <div class="panel-overlay" id="panelOverlay" hidden></div>
+
+  <!-- Right panel / Bottom sheet -->
+  <aside class="sidepanel" id="sidepanel">
+    <div class="panel-handle" id="panelHandle"><div class="handle-bar"></div></div>
+    <div class="panel-header">
+      <div class="panel-tabs">
+        <button class="panel-tab active" data-tab="info">Информация</button>
+        <button class="panel-tab" data-tab="bookmarks">Закладки <span class="badge" id="bmCount">0</span></button>
+      </div>
+      <button class="panel-close" id="panelClose" aria-label="Закрыть">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="panel-body">
+      <!-- Info tab -->
+      <div class="panel-tab-content active" id="tabInfo">
+        <div class="panel-empty" id="panelEmpty">
+          <div class="empty-illu">
+            <svg viewBox="0 0 120 120" fill="none">
+              <defs>
+                <linearGradient id="g1" x1="20" y1="20" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#5b9bff"/>
+                  <stop offset=".5" stop-color="#7c6bff"/>
+                  <stop offset="1" stop-color="#b06bff"/>
+                </linearGradient>
+                <radialGradient id="g2" cx="60" cy="56" r="28" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="rgba(91,155,255,0.20)"/>
+                  <stop offset="1" stop-color="rgba(176,107,255,0)"/>
+                </radialGradient>
+              </defs>
+              <circle cx="60" cy="60" r="46" stroke="url(#g1)" stroke-width="1" stroke-dasharray="3 6" opacity="0.6"/>
+              <circle cx="60" cy="60" r="32" stroke="url(#g1)" stroke-width="1" stroke-dasharray="2 4" opacity="0.35"/>
+              <circle cx="60" cy="60" r="18" stroke="url(#g1)" stroke-width="1" opacity="0.2"/>
+              <circle cx="60" cy="56" r="28" fill="url(#g2)"/>
+              <path d="M60 28c-14 0-26 12-26 26 0 20 26 36 26 36s26-16 26-36c0-14-12-26-26-26z" stroke="url(#g1)" stroke-width="2.5" fill="rgba(91,155,255,0.06)" stroke-linejoin="round"/>
+              <circle cx="60" cy="54" r="8" fill="url(#g1)"/>
+              <circle cx="60" cy="54" r="4" fill="white" opacity="0.9"/>
+            </svg>
+          </div>
+          <h2>Изучайте мир</h2>
+          <p>Кликните по карте, чтобы увидеть координаты, высоту и адрес. Или найдите место через поиск.</p>
+        </div>
+
+        <div class="panel-content" id="panelContent" hidden>
+          <div class="panel-head">
+            <div class="panel-title" id="placeTitle">Место</div>
+            <div class="panel-sub" id="placeSubtitle">—</div>
+          </div>
+
+          <div class="stat-grid">
+            <div class="stat">
+              <div class="stat-label">Широта</div>
+              <div class="stat-value mono" id="statLat">—</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Долгота</div>
+              <div class="stat-value mono" id="statLon">—</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Высота</div>
+              <div class="stat-value mono" id="statElev">— <span class="unit">м</span></div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Точность</div>
+              <div class="stat-value mono" id="statAcc">—</div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Адрес</div>
+            <div class="address-card" id="addressCard">
+              <div class="address-line" id="addrStreet">—</div>
+              <div class="address-line muted" id="addrCity">—</div>
+              <div class="address-line muted" id="addrCountry">—</div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Погода</div>
+            <div class="weather-card" id="weatherCard">
+              <div class="weather-temp" id="wTemp">—</div>
+              <div class="weather-info">
+                <div class="weather-cond" id="wCond">—</div>
+                <div class="weather-extra" id="wExtra">—</div>
+              </div>
+              <div class="weather-icon" id="wIcon"></div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Действия</div>
+            <div class="actions-row">
+              <button class="action-btn" id="copyCoords"><svg viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M5 15V5a2 2 0 012-2h10" stroke="currentColor" stroke-width="1.8"/></svg>Координаты</button>
+              <button class="action-btn" id="copyAddr"><svg viewBox="0 0 24 24" fill="none"><path d="M10 14L21 3M21 3h-7M21 3v7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M21 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h5" stroke="currentColor" stroke-width="1.8"/></svg>Адрес</button>
+              <button class="action-btn" id="shareBtn"><svg viewBox="0 0 24 24" fill="none"><circle cx="6" cy="12" r="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="6" r="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="18" r="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M8 11l8-4M8 13l8 4" stroke="currentColor" stroke-width="1.8"/></svg>Поделиться</button>
+              <button class="action-btn" id="saveMark"><svg viewBox="0 0 24 24" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z" stroke="currentColor" stroke-width="1.8"/></svg>В закладки</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bookmarks tab -->
+      <div class="panel-tab-content" id="tabBookmarks">
+        <div class="bookmarks-list" id="bmList"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Layers menu -->
+  <div class="layers-menu" id="layersMenu" hidden>
+    <div class="menu-title">Стиль карты</div>
+    <div class="layer-options">
+      <button class="layer-opt active" data-style="yandex#hybrid">
+        <div class="layer-preview layer-hybrid"></div>
+        <div class="layer-info"><span>Гибрид</span><small>Спутник + подписи</small></div>
+      </button>
+      <button class="layer-opt" data-style="yandex#satellite">
+        <div class="layer-preview layer-sat"></div>
+        <div class="layer-info"><span>Спутник</span><small>Чистый снимок</small></div>
+      </button>
+      <button class="layer-opt" data-style="yandex#map">
+        <div class="layer-preview layer-streets"></div>
+        <div class="layer-info"><span>Карта улиц</span><small>Подробные подписи</small></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom: zoom + coords -->
+  <div class="bottom-left">
+    <div class="zoom-controls">
+      <button class="zoom-btn" id="zoomIn" title="Приблизить">+</button>
+      <button class="zoom-btn" id="zoomOut" title="Отдалить">−</button>
+      <button class="zoom-btn" id="compassBtn" title="Сбросить вид">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="coord-pill mono" id="coordPill">— , —</div>
+    <div class="elev-pill mono" id="elevPill">— м</div>
+    <div class="scale-pill" id="scalePill">— км</div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="app.js?v=14" defer></script>
+</body>
+</html>
