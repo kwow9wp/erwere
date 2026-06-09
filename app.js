@@ -747,30 +747,96 @@ $('themeBtn').addEventListener('click', () => {
 });
 
 // ===== Locate =====
-$('locateBtn').addEventListener('click', () => {
-  if (!navigator.geolocation) { showToast('Геолокация недоступна', 'error'); return; }
-  navigator.geolocation.getCurrentPosition((pos) => {
-    const { latitude, longitude, accuracy } = pos.coords;
-    if (userPlacemark) map.geoObjects.remove(userPlacemark);
-    if (userAccuracyCircle) map.geoObjects.remove(userAccuracyCircle);
-    userPlacemark = new ymaps.Placemark([latitude, longitude], {}, {
-      iconLayout: geoLayout,
-      iconShape: { type: 'Circle', coordinates: [0, 0], radius: 10 }
-    });
-    map.geoObjects.add(userPlacemark);
-    userAccuracyCircle = new ymaps.Circle([[latitude, longitude], accuracy], {}, {
+function setUserPosition(lat, lon, accuracy = 0, source = 'gps') {
+  if (userPlacemark) map.geoObjects.remove(userPlacemark);
+  if (userAccuracyCircle) map.geoObjects.remove(userAccuracyCircle);
+  userPlacemark = new ymaps.Placemark([lat, lon], {}, {
+    iconLayout: geoLayout,
+    iconShape: { type: 'Circle', coordinates: [0, 0], radius: 10 }
+  });
+  map.geoObjects.add(userPlacemark);
+  if (accuracy > 0) {
+    userAccuracyCircle = new ymaps.Circle([[lat, lon], accuracy], {}, {
       fillColor: 'rgba(34,211,238,0.12)',
       strokeColor: 'rgba(34,211,238,0.4)',
       strokeWidth: 1
     });
     map.geoObjects.add(userAccuracyCircle);
-    map.setCenter([latitude, longitude], 16, { duration: 1000 });
-    showToast(`Точность: ${Math.round(accuracy)} м`);
-    loadPlace(longitude, latitude, false, false);
+  }
+  map.setCenter([lat, lon], 16, { duration: 1000 });
+  if (source === 'gps') showToast(`Точность: ${Math.round(accuracy)} м`);
+  else showToast('Местоположение по IP (приблизительно)');
+  loadPlace(lon, lat, false, false);
+}
+
+async function fallbackIpLocation() {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    const res = await fetch('https://ipapi.co/json/', { signal: ctrl.signal });
+    clearTimeout(t);
+    if (!res.ok) throw new Error('ipapi failed');
+    const data = await res.json();
+    if (data.latitude && data.longitude) {
+      setUserPosition(data.latitude, data.longitude, 5000, 'ip');
+      return true;
+    }
+  } catch (e) {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 8000);
+      const res = await fetch('https://ipinfo.io/json', { signal: ctrl.signal });
+      clearTimeout(t);
+      if (!res.ok) throw new Error('ipinfo failed');
+      const data = await res.json();
+      if (data.loc) {
+        const [lat, lon] = data.loc.split(',').map(Number);
+        setUserPosition(lat, lon, 5000, 'ip');
+        return true;
+      }
+    } catch (e2) {}
+  }
+  return false;
+}
+
+function requestGeolocation() {
+  if (!navigator.geolocation) {
+    fallbackIpLocation().then(ok => {
+      if (!ok) showToast('Геолокация недоступна', 'error');
+    });
+    return;
+  }
+
+  const geoTimeout = setTimeout(() => {
+    showToast('GPS медленно отвечает, пробую по IP…');
+    fallbackIpLocation();
+  }, 10000);
+
+  navigator.geolocation.getCurrentPosition((pos) => {
+    clearTimeout(geoTimeout);
+    const { latitude, longitude, accuracy } = pos.coords;
+    setUserPosition(latitude, longitude, accuracy, 'gps');
   }, (err) => {
-    showToast('Не удалось определить местоположение', 'error');
-  }, { enableHighAccuracy: true });
-});
+    clearTimeout(geoTimeout);
+    let msg = 'Не удалось определить местоположение';
+    if (err.code === 1) msg = 'Нет разрешения на геолокацию. Включите доступ в настройках браузера';
+    else if (err.code === 2) msg = 'GPS выключен или сигнал недоступен';
+    else if (err.code === 3) msg = 'Превышен таймаут GPS';
+    showToast(msg, 'error');
+    fallbackIpLocation().then(ok => {
+      if (!ok) showToast('IP-геолокация тоже недоступна', 'error');
+    });
+  }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+}
+
+$('locateBtn').addEventListener('click', requestGeolocation);
+
+// Auto-locate on first visit if permission already granted
+if (navigator.geolocation && navigator.permissions) {
+  navigator.permissions.query({ name: 'geolocation' }).then(result => {
+    if (result.state === 'granted') requestGeolocation();
+  }).catch(() => {});
+}
 
 // ===== Bookmarks =====
 function restoreBookmarks() {
