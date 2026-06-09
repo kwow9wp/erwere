@@ -791,12 +791,29 @@ function hideGeoBlocked() {
   $('geoBlocked').hidden = true;
 }
 
-function requestGeolocation() {
+function requestGeolocation(force = false) {
   if (!navigator.geolocation) {
     showGeoBlocked('unsupported');
     return;
   }
 
+  // Check permission status first — if denied, show instructions instead of a silent fail
+  if (navigator.permissions && !force) {
+    navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+      if (result.state === 'denied') {
+        showGeoBlocked('denied');
+      } else if (result.state === 'granted') {
+        runGeolocation();
+      } else {
+        runGeolocation();
+      }
+    }).catch(() => runGeolocation());
+  } else {
+    runGeolocation();
+  }
+}
+
+function runGeolocation() {
   const geoTimeout = setTimeout(() => {
     showGeoBlocked('timeout');
   }, 15000);
@@ -814,8 +831,8 @@ function requestGeolocation() {
   }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
 }
 
-$('locateBtn').addEventListener('click', requestGeolocation);
-$('geoRetryBtn').addEventListener('click', requestGeolocation);
+$('locateBtn').addEventListener('click', () => requestGeolocation());
+$('geoRetryBtn').addEventListener('click', () => requestGeolocation(true));
 $('geoHelpToggle').addEventListener('click', () => {
   const body = $('geoHelpBody');
   body.hidden = !body.hidden;
