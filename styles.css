@@ -380,6 +380,33 @@ body{background:var(--bg);color:var(--t1)}
 .geo-blocked-btn:hover{background:var(--hover);border-color:var(--b3);transform:translateY(-1px)}
 .geo-blocked-btn:active{transform:scale(.96)}
 .geo-blocked-btn svg{width:18px;height:18px;color:var(--red)}
+.geo-blocked-btn.primary{background:var(--grad-warm);color:#fff;border:none;box-shadow:0 4px 12px rgba(255,120,60,0.35)}
+.geo-blocked-btn.primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(255,120,60,0.45);filter:brightness(1.08)}
+.geo-blocked-btn.primary svg{color:#fff}
+
+.geo-blocked-actions{display:flex;gap:8px;margin-bottom:10px}
+
+.geo-help{width:100%;max-width:260px}
+.geo-help-toggle{
+  display:flex;align-items:center;gap:7px;
+  padding:8px 12px;border-radius:var(--r2);
+  background:transparent;border:1px solid transparent;
+  font-size:11px;font-weight:600;color:var(--t3);
+  transition:all var(--fast);cursor:pointer;
+  margin:0 auto;
+}
+.geo-help-toggle:hover{color:var(--t2);background:var(--fill)}
+.geo-help-toggle svg{width:15px;height:15px;flex-shrink:0}
+.geo-help-body{
+  display:flex;flex-direction:column;gap:8px;
+  padding:10px 12px;margin-top:4px;
+  background:var(--fill);border:1px solid var(--b1);
+  border-radius:var(--r2);text-align:left;
+  animation:riseIn .2s var(--spring);
+}
+.geo-help-item{display:flex;flex-direction:column;gap:2px}
+.geo-help-item strong{font-size:11px;color:var(--t1);font-weight:700}
+.geo-help-item span{font-size:10px;color:var(--t2);line-height:1.5}
 .empty-illu{width:90px;height:90px;margin-bottom:20px;opacity:.95;animation:float 4s ease-in-out infinite}
 .empty-illu svg{width:100%;height:100%}
 .panel-empty h2{font-size:18px;font-weight:700;letter-spacing:-.025em;color:var(--t1);margin-bottom:8px}

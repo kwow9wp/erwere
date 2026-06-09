@@ -112,11 +112,29 @@
             </svg>
           </div>
           <h2>Геолокация отключена</h2>
-          <p>Разрешите доступ к местоположению в настройках браузера, чтобы определить ваше положение.</p>
-          <button class="geo-blocked-btn" id="geoRetryBtn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8z"/><circle cx="12" cy="10" r="3"/><path d="M21 12v6M21 18h-6"/></svg>
-            Попробовать снова
-          </button>
+          <p>Разрешите доступ к местоположению, чтобы определить ваше положение на карте.</p>
+          <div class="geo-blocked-actions">
+            <button class="geo-blocked-btn primary" id="geoRetryBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8z"/><circle cx="12" cy="10" r="3"/><path d="M21 12v6M21 18h-6"/></svg>
+              Разрешить доступ
+            </button>
+          </div>
+          <div class="geo-help" id="geoHelp">
+            <button class="geo-help-toggle" id="geoHelpToggle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9 9h.01M9 15h.01M12 14v-4M15 9h.01M15 15h.01"/></svg>
+              Как включить геопозицию?
+            </button>
+            <div class="geo-help-body" id="geoHelpBody" hidden>
+              <div class="geo-help-item">
+                <strong>iPhone (Safari)</strong>
+                <span>Настройки → Safari → Геопозиция → Разрешить</span>
+              </div>
+              <div class="geo-help-item">
+                <strong>Android (Chrome)</strong>
+                <span>⚙️ в адресной строке → Настройки сайта → Геопозиция → Разрешить</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="panel-content" id="panelContent" hidden>

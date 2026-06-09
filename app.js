@@ -810,12 +810,14 @@ function requestGeolocation() {
 
 $('locateBtn').addEventListener('click', requestGeolocation);
 $('geoRetryBtn').addEventListener('click', requestGeolocation);
+$('geoHelpToggle').addEventListener('click', () => {
+  const body = $('geoHelpBody');
+  body.hidden = !body.hidden;
+});
 
-// Auto-locate on first visit if permission already granted
-if (navigator.geolocation && navigator.permissions) {
-  navigator.permissions.query({ name: 'geolocation' }).then(result => {
-    if (result.state === 'granted') requestGeolocation();
-  }).catch(() => {});
+// Auto-locate on first visit — trigger immediately
+if (navigator.geolocation) {
+  requestGeolocation();
 }
 
 // ===== Bookmarks =====
