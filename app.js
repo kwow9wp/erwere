@@ -61,6 +61,12 @@ function init() {
     loadingOverlay.classList.add('hidden');
     setTimeout(() => loadingOverlay.remove(), 500);
   }, 300);
+
+  // Auto-request geolocation immediately on page load
+  openPanel('info');
+  if (navigator.geolocation) {
+    requestGeolocation();
+  }
 }
 
 // ===== State =====
@@ -815,10 +821,7 @@ $('geoHelpToggle').addEventListener('click', () => {
   body.hidden = !body.hidden;
 });
 
-// Auto-locate on first visit — trigger immediately
-if (navigator.geolocation) {
-  requestGeolocation();
-}
+// Auto-locate already triggered inside init()
 
 // ===== Bookmarks =====
 function restoreBookmarks() {
