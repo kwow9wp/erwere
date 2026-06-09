@@ -400,6 +400,7 @@ async function loadPlace(lng, lat, fly = false, marker = true) {
 
   openPanel('info');
   $('panelEmpty').hidden = true;
+  $('geoBlocked').hidden = true;
   $('panelContent').hidden = false;
 
   $('statLat').textContent = fmtCoord(lat, 'с.ш.', 'ю.ш.');
@@ -747,7 +748,7 @@ $('themeBtn').addEventListener('click', () => {
 });
 
 // ===== Locate =====
-function setUserPosition(lat, lon, accuracy = 0, source = 'gps') {
+function setUserPosition(lat, lon, accuracy) {
   if (userPlacemark) map.geoObjects.remove(userPlacemark);
   if (userAccuracyCircle) map.geoObjects.remove(userAccuracyCircle);
   userPlacemark = new ymaps.Placemark([lat, lon], {}, {
@@ -755,81 +756,60 @@ function setUserPosition(lat, lon, accuracy = 0, source = 'gps') {
     iconShape: { type: 'Circle', coordinates: [0, 0], radius: 10 }
   });
   map.geoObjects.add(userPlacemark);
-  if (accuracy > 0) {
-    userAccuracyCircle = new ymaps.Circle([[lat, lon], accuracy], {}, {
-      fillColor: 'rgba(34,211,238,0.12)',
-      strokeColor: 'rgba(34,211,238,0.4)',
-      strokeWidth: 1
-    });
-    map.geoObjects.add(userAccuracyCircle);
-  }
+  userAccuracyCircle = new ymaps.Circle([[lat, lon], accuracy || 0], {}, {
+    fillColor: 'rgba(34,211,238,0.12)',
+    strokeColor: 'rgba(34,211,238,0.4)',
+    strokeWidth: 1
+  });
+  map.geoObjects.add(userAccuracyCircle);
   map.setCenter([lat, lon], 16, { duration: 1000 });
-  if (source === 'gps') showToast(`Точность: ${Math.round(accuracy)} м`);
-  else showToast('Местоположение по IP (приблизительно)');
+  showToast(`Точность: ${Math.round(accuracy)} м`);
   loadPlace(lon, lat, false, false);
+  hideGeoBlocked();
 }
 
-async function fallbackIpLocation() {
-  try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 8000);
-    const res = await fetch('https://ipapi.co/json/', { signal: ctrl.signal });
-    clearTimeout(t);
-    if (!res.ok) throw new Error('ipapi failed');
-    const data = await res.json();
-    if (data.latitude && data.longitude) {
-      setUserPosition(data.latitude, data.longitude, 5000, 'ip');
-      return true;
-    }
-  } catch (e) {
-    try {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 8000);
-      const res = await fetch('https://ipinfo.io/json', { signal: ctrl.signal });
-      clearTimeout(t);
-      if (!res.ok) throw new Error('ipinfo failed');
-      const data = await res.json();
-      if (data.loc) {
-        const [lat, lon] = data.loc.split(',').map(Number);
-        setUserPosition(lat, lon, 5000, 'ip');
-        return true;
-      }
-    } catch (e2) {}
-  }
-  return false;
+function showGeoBlocked(reason) {
+  openPanel('info');
+  $('panelEmpty').hidden = true;
+  $('panelContent').hidden = true;
+  const geoBlocked = $('geoBlocked');
+  geoBlocked.hidden = false;
+  const msg = geoBlocked.querySelector('p');
+  if (reason === 'denied') msg.textContent = 'Разрешите доступ к местоположению в настройках браузера, чтобы определить ваше положение.';
+  else if (reason === 'unavailable') msg.textContent = 'GPS выключен или сигнал недоступен. Включите геолокацию на устройстве.';
+  else if (reason === 'timeout') msg.textContent = 'GPS не отвечает. Проверьте, включена ли геолокация на устройстве.';
+  else msg.textContent = 'Геолокация недоступна в этом браузере.';
+}
+
+function hideGeoBlocked() {
+  $('geoBlocked').hidden = true;
 }
 
 function requestGeolocation() {
   if (!navigator.geolocation) {
-    fallbackIpLocation().then(ok => {
-      if (!ok) showToast('Геолокация недоступна', 'error');
-    });
+    showGeoBlocked('unsupported');
     return;
   }
 
   const geoTimeout = setTimeout(() => {
-    showToast('GPS медленно отвечает, пробую по IP…');
-    fallbackIpLocation();
-  }, 10000);
+    showGeoBlocked('timeout');
+  }, 15000);
 
   navigator.geolocation.getCurrentPosition((pos) => {
     clearTimeout(geoTimeout);
     const { latitude, longitude, accuracy } = pos.coords;
-    setUserPosition(latitude, longitude, accuracy, 'gps');
+    setUserPosition(latitude, longitude, accuracy);
   }, (err) => {
     clearTimeout(geoTimeout);
-    let msg = 'Не удалось определить местоположение';
-    if (err.code === 1) msg = 'Нет разрешения на геолокацию. Включите доступ в настройках браузера';
-    else if (err.code === 2) msg = 'GPS выключен или сигнал недоступен';
-    else if (err.code === 3) msg = 'Превышен таймаут GPS';
-    showToast(msg, 'error');
-    fallbackIpLocation().then(ok => {
-      if (!ok) showToast('IP-геолокация тоже недоступна', 'error');
-    });
+    if (err.code === 1) showGeoBlocked('denied');
+    else if (err.code === 2) showGeoBlocked('unavailable');
+    else if (err.code === 3) showGeoBlocked('timeout');
+    else showGeoBlocked('unknown');
   }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
 }
 
 $('locateBtn').addEventListener('click', requestGeolocation);
+$('geoRetryBtn').addEventListener('click', requestGeolocation);
 
 // Auto-locate on first visit if permission already granted
 if (navigator.geolocation && navigator.permissions) {

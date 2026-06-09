@@ -362,6 +362,24 @@ body{background:var(--bg);color:var(--t1)}
   content:"";position:absolute;left:16px;right:16px;bottom:0;height:1px;
   background:linear-gradient(90deg,transparent 0%,var(--b2) 20%,var(--b3) 50%,var(--b2) 80%,transparent 100%);
 }
+
+/* Geolocation blocked state */
+.geo-blocked{display:flex;flex-direction:column;align-items:center;padding:28px 0;text-align:center;animation:riseIn .35s var(--spring)}
+.geo-blocked-illu{width:64px;height:64px;margin-bottom:18px;opacity:.9}
+.geo-blocked-illu svg{width:100%;height:100%}
+.geo-blocked h2{font-size:16px;font-weight:700;color:var(--t1);margin-bottom:7px}
+.geo-blocked p{font-size:12px;color:var(--t2);line-height:1.6;max-width:240px;margin-bottom:16px}
+.geo-blocked-btn{
+  display:flex;align-items:center;gap:9px;
+  padding:10px 20px;border-radius:var(--r2);
+  background:var(--fill);border:1px solid var(--b2);
+  font-size:12px;font-weight:700;color:var(--t1);
+  transition:all var(--fast);
+  box-shadow:var(--s1);
+}
+.geo-blocked-btn:hover{background:var(--hover);border-color:var(--b3);transform:translateY(-1px)}
+.geo-blocked-btn:active{transform:scale(.96)}
+.geo-blocked-btn svg{width:18px;height:18px;color:var(--red)}
 .empty-illu{width:90px;height:90px;margin-bottom:20px;opacity:.95;animation:float 4s ease-in-out infinite}
 .empty-illu svg{width:100%;height:100%}
 .panel-empty h2{font-size:18px;font-weight:700;letter-spacing:-.025em;color:var(--t1);margin-bottom:8px}
@@ -670,6 +688,8 @@ body[data-theme="light"] .bm-item{background:rgba(20,50,150,0.03)}
   .panel-tab{padding:7px 13px;font-size:13px}
   .panel-tab-content{padding:16px 18px calc(24px + env(safe-area-inset-bottom))}
   .panel-empty{padding:20px 0 18px}
+  .geo-blocked{padding:20px 0}
+  .geo-blocked h2{font-size:15px}
   .panel-title{font-size:22px}
   .stat-grid{gap:8px;margin-bottom:0;padding:18px 0}
   .stat{padding:13px 13px}
