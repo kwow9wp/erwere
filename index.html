@@ -6,9 +6,13 @@
 <meta name="referrer" content="no-referrer" />
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta name="theme-color" content="#05080f" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Atlas — Карты</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8z' fill='%234f8aff'/><circle cx='12' cy='10' r='3' fill='white'/></svg>" />
-<link rel="stylesheet" href="styles.css?v=23" />
+<link rel="apple-touch-icon" href="icons/icon.svg" />
+<link rel="manifest" href="manifest.json" />
+<link rel="stylesheet" href="styles.css?v=24" />
 <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&apikey=7b9a02e6-6c9a-48fe-8659-226050defb05" type="text/javascript"></script>
 </head>
 <body>
@@ -241,6 +245,11 @@
   <!-- Toast -->
   <div class="toast" id="toast" hidden></div>
 
-  <script src="app.js?v=14" defer></script>
+  <script src="app.js?v=15" defer></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
 </body>
 </html>
